@@ -36,11 +36,13 @@ jobs:
         git config --global user.email "etienneleborgne@gmail.com"
 
     - name: Clonage du dépôt modèle
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
+        git clone https://lumios-le-jeu:${GH_TOKEN}@github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
         cd carte-a-gratter-resultats
         git remote rm origin
-        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
+        git remote add origin "https://lumios-le-jeu:${GH_TOKEN}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
 
     - name: Personnaliser la carte avec les entrées
       run: |
@@ -56,6 +58,8 @@ jobs:
       run: cat carte-a-gratter-resultats/index.html
 
     - name: Push vers le dépôt
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         cd carte-a-gratter-resultats
         git push -u origin main
