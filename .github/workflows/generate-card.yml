@@ -19,16 +19,32 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    - name: Afficher les paramètres de création de carte
+      run: |
+        echo "Création du dépôt pour la carte..."
+        echo "URL de l'image de fond : ${{ github.event.inputs.backgroundImage }}"
+        echo "Texte de la carte : ${{ github.event.inputs.scratchText }}"
+        echo "Couleur du texte : ${{ github.event.inputs.scratchColor }}"
 
     - name: Créer un nouveau dépôt pour la carte
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         REPO_NAME="card-$(date +%s)"
-        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
+        echo "Nom du dépôt : $REPO_NAME"
+
+        # Configuration de Git pour l'utilisateur
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "GitHub Actions"
+
+        # Clone du modèle de dépôt en utilisant le GITHUB_TOKEN pour l'authentification
+        git clone https://lumios-le-jeu:${{ secrets.GITHUB_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
         cd $REPO_NAME
+
+        # Reconfiguration de l'origine et push vers un nouveau dépôt
         git remote remove origin
-        git remote add origin https://github.com/lumios-le-jeu/${REPO_NAME}.git
+        git remote add origin https://lumios-le-jeu:${{ secrets.GITHUB_TOKEN }}@github.com/lumios-le-jeu/${REPO_NAME}.git
         git push origin main --set-upstream
-        echo "Dépôt ${REPO_NAME} créé"
+        echo "Dépôt ${REPO_NAME} créé et poussé avec succès."
