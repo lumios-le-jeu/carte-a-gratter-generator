@@ -6,7 +6,7 @@ on:
       background_image_url:
         description: "URL de l'image de fond"
         required: true
-        default: "https://raw.githubusercontent.com/lumios-le-jeu/cadeau/main/bon.JPG"
+        default: "https://raw.githubusercontent.com/lumios-le-jeu/cadeau/main/bon_lumios.jpg"
       scratch_text:
         description: "Texte pour la carte"
         required: true
