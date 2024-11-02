@@ -32,17 +32,26 @@ jobs:
           git config --global user.email "etienneleborgne@gmail.com"
           git config --global user.name "lumios-le-jeu"
 
-      - name: Créer un nouveau dépôt pour la carte
+      - name: Créer un nouveau dépôt sur GitHub
+        env:
+          REPO_NAME: "card-$(date +%s)"
         run: |
-          REPO_NAME="card-$(date +%s)"
           echo "Nom du dépôt : $REPO_NAME"
+          curl -u lumios-le-jeu:${{ secrets.GH_TOKEN }} https://api.github.com/user/repos -d "{\"name\":\"$REPO_NAME\"}"
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+
+      - name: Cloner le modèle de carte et changer le remote
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}
+        run: |
           git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
           cd $REPO_NAME
           git remote rm origin
           git remote add origin https://lumios-le-jeu:${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/$REPO_NAME.git
-          git push -u origin main
 
       - name: Personnaliser la carte
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}
         run: |
           cd $REPO_NAME
           # Exemple d'utilisation des variables pour personnaliser la carte
@@ -54,6 +63,8 @@ jobs:
           git push -u origin main
 
       - name: Activer GitHub Pages
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}
         run: |
           curl -u lumios-le-jeu:${{ secrets.GH_TOKEN }} -X POST \
           -H "Accept: application/vnd.github.switcheroo-preview+json" \
@@ -61,6 +72,8 @@ jobs:
           -d '{"source":{"branch":"main","path":"/"}}'
 
       - name: Afficher l'URL de la carte
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}
         run: |
           echo "Votre carte est disponible à l'adresse suivante :"
           echo "https://lumios-le-jeu.github.io/$REPO_NAME/"
