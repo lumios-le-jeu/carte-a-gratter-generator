@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Carte à Gratter</title>
+</head>
+<body>
+
+<h2>Créez votre propre Carte à Gratter</h2>
+
+<!-- Formulaire de personnalisation -->
+<form id="createCardForm">
+    <label for="backgroundImage">Image de fond :</label>
+    <input type="file" id="backgroundImage" accept="image/*" required><br><br>
+
+    <label for="scratchText">Texte sur la carte de grattage :</label>
+    <input type="text" id="scratchText" required><br><br>
+
+    <label for="scratchColor">Couleur de grattage :</label>
+    <input type="color" id="scratchColor" value="#0000FF"><br><br>
+
+    <button type="button" onclick="generateCard()">Créer ma Carte</button>
+</form>
+
+<script>
+    function generateCard() {
+        const backgroundImage = document.getElementById('backgroundImage').files[0];
+        const scratchText = document.getElementByElementById('scratchText').value;
+        const scratchColor = document.getElementById('scratchColor').value;
+
+        if (!backgroundImage) {
+            alert("Veuillez choisir une image de fond.");
+            return;
+        }
+
+        alert("Les données seront envoyées à GitHub Actions pour créer une carte personnalisée.");
+    }
+</script>
+
+</body>
+</html>
