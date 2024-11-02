@@ -36,8 +36,6 @@ jobs:
         mkdir -p ~/.ssh
         echo "$ACTIONS_SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        eval "$(ssh-agent -s)"
-        ssh-add ~/.ssh/id_rsa
         ssh-keyscan github.com >> ~/.ssh/known_hosts
 
     - name: Clonage du dépôt modèle
@@ -66,5 +64,5 @@ jobs:
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GH_TOKEN }}  # Utilisation de GH_TOKEN à la place de GITHUB_TOKEN
+        github_token: ${{ secrets.GH_TOKEN }}
         publish_dir: "$REPO_NAME"
