@@ -3,10 +3,10 @@ name: Génération de Carte à Gratter
 on:
   workflow_dispatch:
     inputs:
-      background_image:
-        description: "URL de l'image de fond"
+      image_url:
+        description: "Image de fond pour la carte"
         required: true
-      message_text:
+      card_text:
         description: "Texte pour la carte"
         required: true
       text_color:
@@ -16,44 +16,45 @@ on:
 jobs:
   create_card:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Afficher les paramètres de création de carte
         run: |
-          echo "Image de fond : ${{ github.event.inputs.background_image }}"
-          echo "Texte : ${{ github.event.inputs.message_text }}"
+          echo "Image de fond : ${{ github.event.inputs.image_url }}"
+          echo "Texte : ${{ github.event.inputs.card_text }}"
           echo "Couleur du texte : ${{ github.event.inputs.text_color }}"
 
+      - name: Configure Git User
+        run: |
+          git config --global user.email "etienneleborgne@gmail.com"
+          git config --global user.name "lumios-le-jeu"
+
       - name: Créer un nouveau dépôt pour la carte
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           REPO_NAME="card-$(date +%s)"
           echo "Nom du dépôt : $REPO_NAME"
-
-          # Cloner le modèle de carte à gratter
-          git clone https://$GH_TOKEN@github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
-          
-          # Aller dans le dossier du nouveau dépôt
+          git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
           cd $REPO_NAME
-          
-          # Personnalisation de la carte avec les paramètres
-          sed -i "s|BACKGROUND_IMAGE_URL|${{ github.event.inputs.background_image }}|g" index.html
-          sed -i "s|MESSAGE_TEXT|${{ github.event.inputs.message_text }}|g" index.html
-          sed -i "s|TEXT_COLOR|${{ github.event.inputs.text_color }}|g" index.html
+          git remote remove origin
+          git remote add origin https://github.com/lumios-le-jeu/$REPO_NAME.git
 
-          # Initialisation du nouveau dépôt Git
-          git init
+      - name: Personnaliser la carte
+        run: |
+          cd $REPO_NAME
+          # Exemple d'utilisation des variables pour personnaliser la carte
+          sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.image_url }}|g" index.html
+          sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.card_text }}|g" index.html
+          sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.text_color }}|g" index.html
           git add .
-          git commit -m "Carte personnalisée générée automatiquement"
-          git branch -M main
-          git remote add origin https://$GH_TOKEN@github.com/lumios-le-jeu/$REPO_NAME.git
+          git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
           git push -u origin main
 
-      - name: Post Checkout
-        if: success()
+      - name: Activer GitHub Pages
         run: |
-          echo "Le dépôt a été créé et le contenu a été personnalisé."
+          curl -u lumios-le-jeu:${{ secrets.GH_TOKEN }} \
+            -X POST \
+            -H "Accept: application/vnd.github.switcheroo-preview+json" \
+            https://api.github.com/repos/lumios-le-jeu/$REPO_NAME/pages \
+            -d '{"source": {"branch": "main"}}'
