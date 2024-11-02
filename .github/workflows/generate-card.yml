@@ -1,45 +1,49 @@
+name: Génération de Carte à Gratter
+
+on:
+  workflow_dispatch:
+
 jobs:
   create_card:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout du générateur
-        uses: actions/checkout@v3
+    
+    - name: Checkout du générateur
+      uses: actions/checkout@v3
 
-      - name: Afficher les paramètres de création de carte
-        run: |
-          echo "Image URL: ${{ github.event.inputs.image_url }}"
-          echo "Text: ${{ github.event.inputs.text }}"
-          echo "Color: ${{ github.event.inputs.color }}"
+    - name: Afficher les paramètres de création de carte
+      run: |
+        echo "Image URL: ${{ github.event.inputs.image_url }}"
+        echo "Texte: ${{ github.event.inputs.text }}"
+        echo "Couleur: ${{ github.event.inputs.color }}"
 
-      - name: Configurer l'utilisateur Git
-        run: |
-          git config --global user.name "lumios-le-jeu"
-          git config --global user.email "etienneleborgne@gmail.com"
+    - name: Configurer l'utilisateur Git
+      run: |
+        git config --global user.email "etienneleborgne@gmail.com"
+        git config --global user.name "lumios-le-jeu"
 
-      - name: Clonage du dépôt modèle
-        run: |
-          REPO_NAME="card-$(date +%s)"
-          echo "Nom du dépôt : $REPO_NAME"
-          git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git "$REPO_NAME"
-          cd "$REPO_NAME"
-          git remote rm origin
-          git remote add origin "https://${GH_TOKEN}@github.com/lumios-le-jeu/${REPO_NAME}.git"
-          echo "Push vers le nouveau dépôt"
-          git push -u origin main
+    - name: Clonage du dépôt modèle
+      run: |
+        REPO_NAME="card-$(date +%s)"
+        echo "Nom du dépôt : $REPO_NAME"
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git "$REPO_NAME"
+        cd "$REPO_NAME"
+        git remote rm origin
+        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/${REPO_NAME}.git"
+      
+    - name: Personnaliser la carte avec les entrées
+      run: |
+        cd "$REPO_NAME"
+        sed -i "s|PLACEHOLDER_IMAGE_URL|https://raw.githubusercontent.com/lumios-le-jeu/cadeau/main/bon.JPG|g" index.html
+        sed -i "s|PLACEHOLDER_TEXT|Texte personnalisé|g" index.html
+        sed -i "s|PLACEHOLDER_COLOR|#FF0000|g" index.html
+        git add .
+        git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
+        git push -u origin main
 
-      - name: Personnaliser la carte avec les entrées
-        run: |
-          cd "$REPO_NAME"
-          sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.image_url }}|g" index.html
-          sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.text }}|g" index.html
-          sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
-          git add .
-          git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
-          git push origin main
+    - name: Activer GitHub Pages
+      run: |
+        curl -X POST -u "lumios-le-jeu:${{ secrets.GH_TOKEN }}" \
+        -H "Accept: application/vnd.github.switcheroo-preview+json" \
+        https://api.github.com/repos/lumios-le-jeu/${REPO_NAME}/pages/enable
 
-      - name: Activer GitHub Pages
-        run: |
-          curl -X PUT -H "Authorization: token ${GH_TOKEN}" \
-          -H "Accept: application/vnd.github.switcheroo-preview+json" \
-          "https://api.github.com/repos/lumios-le-jeu/${REPO_NAME}/pages" \
-          -d '{"source":{"branch":"main","path":"/"}}'
