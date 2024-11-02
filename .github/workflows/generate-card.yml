@@ -53,10 +53,15 @@ jobs:
         git add .
         git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
 
+    - name: Synchroniser avec le dépôt distant
+      run: |
+        cd "$REPO_NAME"
+        git pull origin main --rebase
+
     - name: Push vers le dépôt
       run: |
         cd "$REPO_NAME"
-        git push -u origin main --force
+        git push -u origin main
 
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
