@@ -36,37 +36,30 @@ jobs:
         git config --global user.email "etienneleborgne@gmail.com"
 
     - name: Clonage du dépôt modèle
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        git clone https://lumios-le-jeu:${GH_TOKEN}@github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
         cd carte-a-gratter-resultats
         git remote rm origin
-        git remote add origin "https://lumios-le-jeu:${GH_TOKEN}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
+        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
 
     - name: Personnaliser la carte avec les entrées
       run: |
         cd carte-a-gratter-resultats
+        # Remplacer l'URL de l'image de fond
         sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.background_image_url }}|g" index.html
+        # Remplacer le texte de la carte
         sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.scratch_text }}|g" index.html
+        # Remplacer la couleur du texte
         sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
-        touch .force-change  # Forcer la détection de changements
+        # Forcer la détection de changements
+        touch .force-change
         git add .
         git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
-      
+
     - name: Vérifier le contenu de index.html après remplacement
       run: cat carte-a-gratter-resultats/index.html
 
-    - name: Synchroniser avec le dépôt distant
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        cd carte-a-gratter-resultats
-        git pull origin main --rebase  # Récupérer les changements distants avant de pousser
-
     - name: Push vers le dépôt
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         cd carte-a-gratter-resultats
         git push -u origin main
