@@ -3,13 +3,13 @@ name: Génération de Carte à Gratter
 on:
   workflow_dispatch:
     inputs:
-      backgroundImage:
-        description: "Image de fond pour la carte"
+      background_image:
+        description: "URL de l'image de fond"
         required: true
-      scratchText:
+      message_text:
         description: "Texte pour la carte"
         required: true
-      scratchColor:
+      text_color:
         description: "Couleur du texte"
         required: true
 
@@ -18,33 +18,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Afficher les paramètres de création de carte
-      run: |
-        echo "Création du dépôt pour la carte..."
-        echo "URL de l'image de fond : ${{ github.event.inputs.backgroundImage }}"
-        echo "Texte de la carte : ${{ github.event.inputs.scratchText }}"
-        echo "Couleur du texte : ${{ github.event.inputs.scratchColor }}"
+      - name: Afficher les paramètres de création de carte
+        run: |
+          echo "Image de fond : ${{ github.event.inputs.background_image }}"
+          echo "Texte : ${{ github.event.inputs.message_text }}"
+          echo "Couleur du texte : ${{ github.event.inputs.text_color }}"
 
-    - name: Créer un nouveau dépôt pour la carte
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        REPO_NAME="card-$(date +%s)"
-        echo "Nom du dépôt : $REPO_NAME"
+      - name: Créer un nouveau dépôt pour la carte
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          REPO_NAME="card-$(date +%s)"
+          echo "Nom du dépôt : $REPO_NAME"
 
-        # Configuration de Git pour l'utilisateur
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "GitHub Actions"
+          # Cloner le modèle de carte à gratter
+          git clone https://$GH_TOKEN@github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
+          
+          # Aller dans le dossier du nouveau dépôt
+          cd $REPO_NAME
+          
+          # Personnalisation de la carte avec les paramètres
+          sed -i "s|BACKGROUND_IMAGE_URL|${{ github.event.inputs.background_image }}|g" index.html
+          sed -i "s|MESSAGE_TEXT|${{ github.event.inputs.message_text }}|g" index.html
+          sed -i "s|TEXT_COLOR|${{ github.event.inputs.text_color }}|g" index.html
 
-        # Clone du modèle de dépôt en utilisant le GITHUB_TOKEN pour l'authentification
-        git clone https://lumios-le-jeu:${{ secrets.GITHUB_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
-        cd $REPO_NAME
+          # Initialisation du nouveau dépôt Git
+          git init
+          git add .
+          git commit -m "Carte personnalisée générée automatiquement"
+          git branch -M main
+          git remote add origin https://$GH_TOKEN@github.com/lumios-le-jeu/$REPO_NAME.git
+          git push -u origin main
 
-        # Reconfiguration de l'origine et push vers un nouveau dépôt
-        git remote remove origin
-        git remote add origin https://lumios-le-jeu:${{ secrets.GITHUB_TOKEN }}@github.com/lumios-le-jeu/${REPO_NAME}.git
-        git push origin main --set-upstream
-        echo "Dépôt ${REPO_NAME} créé et poussé avec succès."
+      - name: Post Checkout
+        if: success()
+        run: |
+          echo "Le dépôt a été créé et le contenu a été personnalisé."
