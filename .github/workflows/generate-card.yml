@@ -24,50 +24,44 @@ jobs:
     - name: Checkout du générateur
       uses: actions/checkout@v3
 
+    - name: Afficher les paramètres de création de carte
+      run: |
+        echo "URL de l'image de fond : ${{ github.event.inputs.background_image_url }}"
+        echo "Texte pour la carte : ${{ github.event.inputs.scratch_text }}"
+        echo "Couleur du texte : ${{ github.event.inputs.color }}"
+
     - name: Configurer l'utilisateur Git
       run: |
         git config --global user.name "lumios-le-jeu"
         git config --global user.email "etienneleborgne@gmail.com"
 
-    - name: Configurer SSH
-      env:
-        ACTIONS_SSH_KEY: ${{ secrets.ACTIONS_SSH_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$ACTIONS_SSH_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-
     - name: Clonage du dépôt modèle
       run: |
-        REPO_NAME="card-$(date +%s)"
-        echo "Nom du dépôt : $REPO_NAME"
-        git clone git@github.com:lumios-le-jeu/carte-a-gratter-template.git "$REPO_NAME"
-        cd "$REPO_NAME"
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
+        cd carte-a-gratter-resultats
         git remote rm origin
-        git remote add origin "git@github.com:lumios-le-jeu/${REPO_NAME}.git"
+        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
 
     - name: Personnaliser la carte avec les entrées
       run: |
-        cd "$REPO_NAME"
+        cd carte-a-gratter-resultats
         sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.background_image_url }}|g" index.html
         sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.scratch_text }}|g" index.html
         sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
+        touch .force-change  # Forcer la détection de changements
         git add .
         git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
-
-    - name: Synchroniser avec le dépôt distant
-      run: |
-        cd "$REPO_NAME"
-        git pull origin main --rebase
+      
+    - name: Vérifier le contenu de index.html après remplacement
+      run: cat carte-a-gratter-resultats/index.html
 
     - name: Push vers le dépôt
       run: |
-        cd "$REPO_NAME"
+        cd carte-a-gratter-resultats
         git push -u origin main
 
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: "$REPO_NAME"
+        publish_dir: carte-a-gratter-resultats
