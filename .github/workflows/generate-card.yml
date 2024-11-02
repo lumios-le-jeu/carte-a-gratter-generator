@@ -37,31 +37,29 @@ jobs:
 
     - name: Clonage du dépôt modèle
       run: |
-        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git carte-a-gratter-resultats
-        cd carte-a-gratter-resultats
+        REPO_NAME="card-$(date +%s)"
+        echo "Nom du dépôt : $REPO_NAME"
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git "$REPO_NAME"
+        cd "$REPO_NAME"
         git remote rm origin
-        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/carte-a-gratter-resultats.git"
+        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/${REPO_NAME}.git"
 
     - name: Personnaliser la carte avec les entrées
       run: |
-        cd carte-a-gratter-resultats
+        cd "$REPO_NAME"
         sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.background_image_url }}|g" index.html
         sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.scratch_text }}|g" index.html
         sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
-        touch .force-change  # Forcer la détection de changements
         git add .
         git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
-      
-    - name: Vérifier le contenu de index.html après remplacement
-      run: cat carte-a-gratter-resultats/index.html
 
     - name: Push vers le dépôt
       run: |
-        cd carte-a-gratter-resultats
-        git push -u origin main
+        cd "$REPO_NAME"
+        git push -u origin main --force
 
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: carte-a-gratter-resultats
+        publish_dir: "$REPO_NAME"
