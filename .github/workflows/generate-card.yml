@@ -1,0 +1,34 @@
+name: Génération de Carte à Gratter
+
+on:
+  workflow_dispatch:
+    inputs:
+      backgroundImage:
+        description: "Image de fond pour la carte"
+        required: true
+      scratchText:
+        description: "Texte pour la carte"
+        required: true
+      scratchColor:
+        description: "Couleur du texte"
+        required: true
+
+jobs:
+  create_card:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Créer un nouveau dépôt pour la carte
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        REPO_NAME="card-$(date +%s)"
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git $REPO_NAME
+        cd $REPO_NAME
+        git remote remove origin
+        git remote add origin https://github.com/lumios-le-jeu/${REPO_NAME}.git
+        git push origin main --set-upstream
+        echo "Dépôt ${REPO_NAME} créé"
