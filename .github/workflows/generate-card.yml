@@ -38,13 +38,13 @@ jobs:
     - name: Créer un nouveau dépôt sur GitHub
       env:
         REPO_NAME: "card-$(date +%s)"
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         echo "Nom du dépôt : $REPO_NAME"
         git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git "$REPO_NAME"
         cd "$REPO_NAME"
         git remote rm origin
-        git remote add origin "https://${GITHUB_TOKEN}@github.com/lumios-le-jeu/${REPO_NAME}.git"
+        git remote add origin "https://${GH_TOKEN}@github.com/lumios-le-jeu/${REPO_NAME}.git"
         git push -u origin main
 
     - name: Personnaliser la carte
