@@ -24,21 +24,17 @@ jobs:
     - name: Checkout du générateur
       uses: actions/checkout@v3
 
-    - name: Afficher les paramètres de création de carte
-      run: |
-        echo "URL de l'image de fond : ${{ github.event.inputs.background_image_url }}"
-        echo "Texte pour la carte : ${{ github.event.inputs.scratch_text }}"
-        echo "Couleur du texte : ${{ github.event.inputs.color }}"
-
     - name: Configurer l'utilisateur Git
       run: |
         git config --global user.name "lumios-le-jeu"
         git config --global user.email "etienneleborgne@gmail.com"
 
-    - name: Configurer SSH pour GitHub
+    - name: Configurer SSH
+      env:
+        ACTIONS_SSH_KEY: ${{ secrets.ACTIONS_SSH_KEY }}
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.ACTIONS_SSH_KEY }}" > ~/.ssh/id_rsa
+        echo "$ACTIONS_SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan github.com >> ~/.ssh/known_hosts
 
@@ -68,5 +64,5 @@ jobs:
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        personal_token: ${{ secrets.GH_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: "$REPO_NAME"
