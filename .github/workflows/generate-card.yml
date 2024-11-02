@@ -48,8 +48,16 @@ jobs:
         sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.background_image_url }}|g" index.html
         sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.scratch_text }}|g" index.html
         sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
+        touch .force-change  # Forcer la détection de changements
         git add .
         git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
+      
+    - name: Vérifier le contenu de index.html après remplacement
+      run: cat carte-a-gratter-resultats/index.html
+
+    - name: Push vers le dépôt
+      run: |
+        cd carte-a-gratter-resultats
         git push -u origin main
 
     - name: Activer GitHub Pages
