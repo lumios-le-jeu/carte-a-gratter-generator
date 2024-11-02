@@ -57,6 +57,13 @@ jobs:
     - name: Vérifier le contenu de index.html après remplacement
       run: cat carte-a-gratter-resultats/index.html
 
+    - name: Synchroniser avec le dépôt distant
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd carte-a-gratter-resultats
+        git pull origin main --rebase  # Récupérer les changements distants avant de pousser
+
     - name: Push vers le dépôt
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
