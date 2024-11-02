@@ -30,8 +30,8 @@
     const backgroundImg = new Image();
 
     // Utiliser des variables de remplacement pour les images
-    foregroundImg.src = 'PLACEHOLDER_GRATTE_IMG';  // Image de grattage
-    backgroundImg.src = 'PLACEHOLDER_BACKGROUND_IMG';  // Image de fond
+    foregroundImg.src = 'https://raw.githubusercontent.com/lumios-le-jeu/cadeau/main/gratte.jpg';  // Image de grattage
+    backgroundImg.src = 'https://raw.githubusercontent.com/lumios-le-jeu/cadeau/main/bon_lumios.jpg';  // Image de fond
 
     backgroundImg.onload = () => {
         bgCtx.drawImage(backgroundImg, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
