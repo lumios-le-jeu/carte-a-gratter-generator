@@ -57,11 +57,15 @@ jobs:
       run: |
         cd "$REPO_NAME"
         git pull origin main --rebase
-        git push origin main
+
+    - name: Push vers le dépôt
+      run: |
+        cd "$REPO_NAME"
+        git push -u origin main
 
     - name: Activer GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
         publish_dir: "$REPO_NAME"
-        publish_branch: main
+
