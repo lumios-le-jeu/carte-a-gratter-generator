@@ -30,41 +30,38 @@ jobs:
         git config --global user.email "etienneleborgne@gmail.com"
 
     - name: Générer un nom de dépôt unique pour le résultat
-      id: repo_name
-      run: echo "repo_name=carte-a-gratter-resultat-$(date +%s)" >> $GITHUB_ENV
+      id: generate_repo_name
+      run: echo "::set-output name=repo_name::carte-a-gratter-resultat-$(date +%s)"
 
     - name: Créer le dépôt via l'API GitHub
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        curl -X POST -H "Authorization: token $GH_TOKEN" \
-        -d "{\"name\": \"${{ env.repo_name }}\", \"private\": false}" \
-        https://api.github.com/orgs/lumios-le-jeu/repos
+        curl -H "Authorization: token $GH_TOKEN" \
+             -d "{\"name\":\"${{ steps.generate_repo_name.outputs.repo_name }}\",\"auto_init\":true,\"private\":false}" \
+             https://api.github.com/orgs/lumios-le-jeu/repos
 
     - name: Cloner le dépôt modèle et personnaliser la carte
       run: |
-        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git "${{ env.repo_name }}"
-        cd "${{ env.repo_name }}"
-        # Personnalisation des éléments dans index.html
-        sed -i "s|PLACEHOLDER_BACKGROUND_IMG|${{ github.event.inputs.background_image_url }}|g" index.html
+        git clone https://github.com/lumios-le-jeu/carte-a-gratter-template.git ${{ steps.generate_repo_name.outputs.repo_name }}
+        cd "${{ steps.generate_repo_name.outputs.repo_name }}"
+        sed -i "s|PLACEHOLDER_IMAGE_URL|${{ github.event.inputs.background_image_url }}|g" index.html
         sed -i "s|PLACEHOLDER_TEXT|${{ github.event.inputs.scratch_text }}|g" index.html
         sed -i "s|PLACEHOLDER_COLOR|${{ github.event.inputs.color }}|g" index.html
-        # Vérification du contenu pour confirmer la personnalisation
-        cat index.html
-        touch .force-change
         git add .
-        git commit -m "Personnalisation de la carte avec les entrées"
+        git commit -m "Personnalisation de la carte avec le texte et l'image de fond"
 
     - name: Ajouter le dépôt distant et pousser
+      run: |
+        cd "${{ steps.generate_repo_name.outputs.repo_name }}"
+        git remote remove origin || true  # Supprime 'origin' s'il existe déjà
+        git remote add origin "https://${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/${{ steps.generate_repo_name.outputs.repo_name }}.git"
+        git push -u origin main
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        cd "${{ env.repo_name }}"
-        git remote add origin "https://lumios-le-jeu:${{ secrets.GH_TOKEN }}@github.com/lumios-le-jeu/${{ env.repo_name }}.git"
-        git push -u origin main
 
     - name: Activer GitHub Pages pour le nouveau dépôt
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GH_TOKEN }}
-        publish_dir: "${{ env.repo_name }}"
+        publish_dir: "${{ steps.generate_repo_name.outputs.repo_name }}"
