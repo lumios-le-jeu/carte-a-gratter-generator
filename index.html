@@ -3,39 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Carte à Gratter</title>
+    <title>Carte à Gratter</title>
+    <style>
+        body { text-align: center; }
+        #backgroundCanvas, #scratchCanvas {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
 </head>
 <body>
 
-<h2>Créez votre propre Carte à Gratter</h2>
-
-<!-- Formulaire de personnalisation -->
-<form id="createCardForm">
-    <label for="backgroundImage">Image de fond :</label>
-    <input type="file" id="backgroundImage" accept="image/*" required><br><br>
-
-    <label for="scratchText">Texte sur la carte de grattage :</label>
-    <input type="text" id="scratchText" required><br><br>
-
-    <label for="scratchColor">Couleur de grattage :</label>
-    <input type="color" id="scratchColor" value="#0000FF"><br><br>
-
-    <button type="button" onclick="generateCard()">Créer ma Carte</button>
-</form>
+<h2>Carte à Gratter</h2>
+<canvas id="backgroundCanvas" width="800" height="600"></canvas>
+<canvas id="scratchCanvas" width="800" height="600"></canvas>
 
 <script>
-    function generateCard() {
-        const backgroundImage = document.getElementById('backgroundImage').files[0];
-        const scratchText = document.getElementByElementById('scratchText').value;
-        const scratchColor = document.getElementById('scratchColor').value;
+    const backgroundCanvas = document.getElementById('backgroundCanvas');
+    const scratchCanvas = document.getElementById('scratchCanvas');
+    const bgCtx = backgroundCanvas.getContext('2d');
+    const scratchCtx = scratchCanvas.getContext('2d');
+    const SCRATCH_RADIUS = 20;
 
-        if (!backgroundImage) {
-            alert("Veuillez choisir une image de fond.");
-            return;
-        }
+    // Définir la couleur de grattage en utilisant la variable dynamique
+    const SCRATCH_COLOR = 'PLACEHOLDER_SCRATCH_COLOR'; // Cette valeur sera remplacée par la couleur choisie
 
-        alert("Les données seront envoyées à GitHub Actions pour créer une carte personnalisée.");
+    // Appliquer la couleur de grattage
+    scratchCtx.fillStyle = SCRATCH_COLOR;
+
+    const foregroundImg = new Image();
+    const backgroundImg = new Image();
+
+    foregroundImg.src = './gratte.JPG';  // Image de grattage
+    backgroundImg.src = './bon.JPG';     // Image de fond
+
+    backgroundImg.onload = () => {
+        bgCtx.drawImage(backgroundImg, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
+    };
+
+    foregroundImg.onload = () => {
+        scratchCtx.drawImage(foregroundImg, 0, 0, scratchCanvas.width, scratchCanvas.height);
+        scratchCtx.globalCompositeOperation = 'destination-out';
+    };
+
+    function scratch(event) {
+        const rect = scratchCanvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        scratchCtx.beginPath();
+        scratchCtx.arc(x, y, SCRATCH_RADIUS, 0, 2 * Math.PI);
+        scratchCtx.fill();
     }
+
+    scratchCanvas.addEventListener('mousedown', (e) => {
+        scratchCanvas.addEventListener('mousemove', scratch);
+        scratch(e);
+    });
+
+    scratchCanvas.addEventListener('mouseup', () => {
+        scratchCanvas.removeEventListener('mousemove', scratch);
+    });
 </script>
 
 </body>
